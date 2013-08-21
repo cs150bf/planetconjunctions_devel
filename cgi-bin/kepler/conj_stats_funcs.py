@@ -67,10 +67,13 @@ def conj_timeline_printout(filename, conj_timeline, global_s_time, global_e_time
 			ext_tag3=''
 			if tmp_dict['incomplete_flag']:
 				datafile.write('\t\t\t>>> Note: this conjunction might not be complete\n')
-				ext_tag3='  <--- May not be accurate! Please see notes above'
+				ext_tag3='  <--- may not be accurate! Please see notes above'
 				if tmp_dict['incomplete_flag'] == 1:
 					ext_tag1='  <---'
 				if tmp_dict['incomplete_flag'] == 2:
+					ext_tag2='  <---'
+				if tmp_dict['incomplete_flag'] == 3:
+					ext_tag1='  <---'
 					ext_tag2='  <---'
 			datafile.write('\t\t\t>>> Notes on this conjunction: '+tmp_dict['notes']+'\n')
 			if date_format == 'jd':
@@ -80,8 +83,8 @@ def conj_timeline_printout(filename, conj_timeline, global_s_time, global_e_time
 			else:
 				datafile.write('\t\t\tConjunction starts at (UTC):'+str(dates.num2date(dates.julian2num(timepoint+2454900)))+ext_tag1+'\n')
 				datafile.write('\t\t\tConjunction ends at (UTC):'+str(dates.num2date(dates.julian2num(tmp_dict['end_time']+2454900)))+ext_tag2+'\n')
-				datafile.write('\t\t\tMid_time (UTC):'+str(dates.num2date(dates.julian2num((timepoint+tmp_dict['end_time'])*0.5+2454900)))+tag3+'\n')
-			datafile.write('\t\t\tConjunction period (hours):'+str(tmp_dict['conjunction_period']*24.0)+'\n')
+				datafile.write('\t\t\tMid_time (UTC):'+str(dates.num2date(dates.julian2num((timepoint+tmp_dict['end_time'])*0.5+2454900)))+ext_tag3+'\n')
+			datafile.write('\t\t\tConjunction duration (hours):'+str(tmp_dict['conjunction_period']*24.0)+'\n')
 			datafile.write('\t\t\tAnd for reference...\n')
 			datafile.write('\t\t\t  Maximum separation among planets when the conjunction starts (unit: Solar Radius) :'+str(tmp_dict['s_ang_sep'])+ext_tag1+'\n')
 			datafile.write('\t\t\t  Maximum separation among planets when the conjunction ends (unit: Solar Radius): '+str(tmp_dict['e_ang_sep'])+ext_tag2+'\n')
@@ -135,11 +138,12 @@ def conjunction_system_timeline_sort(conj_timeline, sys_conj_time, global_start_
 						e_ang_sep_tmp = -1
 						t_period = -1
 						incomplete_flag=6
-						note_item='Something is wrong'
+						note_item='Something is wrong; '
 					else:
 						end_time = end_times[i] 
 						e_ang_sep_tmp = e_ang_sep[i] 
 						t_period = conjunction_period[i]
+						note_item=''
 					this_incomplete_flag = incomplete_flag
 					if incomplete_flag==1: # first conjunction not complete
 						if i == 0:
@@ -152,7 +156,10 @@ def conjunction_system_timeline_sort(conj_timeline, sys_conj_time, global_start_
 						else:
 							note_item = 'Hmm something is wrong, end_time not the last?'
 					elif incomplete_flag==3: # both first and last conjunction not complete
-						if i == 0:
+						if len(start_times)==1:
+							this_incomplete_flag=3
+							note_item = notes[0]+';\t'+notes[1]
+						elif i == 0:
 							this_incomplete_flag=1
 							note_item = notes[0]
 						elif i==len(start_times)-1:

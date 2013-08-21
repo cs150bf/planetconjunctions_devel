@@ -370,7 +370,7 @@ def conj_time_save_to_file(filename, sys_conj_time, r_mode, dps_mode, conjunctio
 					for x in start_times:
 						datafile.write('\t\t\t')
 						datafile.write(str(dates.num2date(dates.julian2num(x+2454900)))+'\n')
-				datafile.write('\t\tConjunction end at: \n')
+				datafile.write('\t\tConjunctions end at: \n')
 				if date_format =='jd':
 					datafile.write('\t\t\t'+str([x+2454900 for x in end_times])+'\n')
 				else:	
@@ -395,7 +395,7 @@ def conj_time_save_to_file(filename, sys_conj_time, r_mode, dps_mode, conjunctio
 				datafile.write('\t\t\t'+str(s_ang_sep)+'\n')
 				datafile.write('\t\t  Maximum separation among planets when conjunction ended (unit: Solar Radius): \n')
 				datafile.write('\t\t\t'+str(e_ang_sep)+'\n')
-				datafile.write('\t\t  Conjunction Transit Period (hours): \n')
+				datafile.write('\t\t  Conjunction durations (hours): \n')
 				datafile.write('\t\t\t'+str([p*24.0 for p in conjunction_period])+'\n')
 				datafile.write('\t\t  Time period between conjunctions (hours): \n')
 				datafile.write('\t\t\t'+str([p*24.0 for p in non_conjunction_period])+'\n')
