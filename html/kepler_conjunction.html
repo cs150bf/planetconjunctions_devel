@@ -19,8 +19,8 @@ Time step (default: 1.0/100000 Day): <input type="text" name="time_step"><br>
 <b>
 Please specify when do we consider two or more planets are in conjunction - when the maximum distance between any two of these planets is smaller than ...
 </b><br>
-<input type="radio" name="transit_crit" value="stellar"> Radius of the current system's star<br>
-<input type="radio" name="transit_crit" value="planetary"> Sum of radii of target planets <br>
+<input type="radio" name="conjunction_crit" value="stellar" checked> Radius of the current system's star<br>
+<input type="radio" name="conjunction_crit" value="planetary"> Sum of radii of target planets <br>
 <br>
 <b>How should we compute the planet-star separation?</b><br>
 <input type="radio" name="dps_mode" value="1" checked disabled> Use the semi-major axis of the orbit given in the data table<br>

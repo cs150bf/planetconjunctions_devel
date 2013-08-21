@@ -5,16 +5,16 @@ import pickle
 import pylab
 
 
-def transit_time_readin(filename, verbose = False):
+def conj_time_readin(filename, verbose = False):
 	"""
-	Return a dictionary: sys_transit_time
+	Return a dictionary: sys_conj_time
 	under each keywords, (each system), we have sub-dictionaries, with # of planets as key words
-	sys_transit_time = { sys_id0:  {'n_planets': 3,
+	sys_conj_time = { sys_id0:  {'n_planets': 3,
 					'2':{  (planet0, planet1): 				
 					    		{'start_points':[], 'end_points':[] \
 							 's_ang_sep':[], 'e_ang_sep':[],  \
-							 'transit_period':[], 'non_transit_period':[]  \
-							 'n_transits': <int>},	
+							 'conjunction_period':[], 'non_conjunction_period':[]  \
+							 'n_conjs': <int>},	
 					       (planet1, planet2):
 						 	{ },...}, 
 					'3':{}, ...} , 
@@ -25,75 +25,107 @@ def transit_time_readin(filename, verbose = False):
 	if verbose:
 		print 'Reading file: '+filename+'.pickle'
 	pkfile = open(filename+'.pickle', 'r')
-	sys_transit_time = pickle.load(pkfile)
-	return sys_transit_time
+	sys_conj_time = pickle.load(pkfile)
+	return sys_conj_time
 
-def transit_timeline_printout(filename, transit_timeline, date_format='jd', pickle_file=False):
+def conj_timeline_printout(filename, conj_timeline, global_s_time, global_e_time, date_format='jd', pickle_file=False):
     fns = []
     if pickle_file:
 	pkfile = open(filename+'.pickle', 'w')
         fns.append(filename+'.pickle')
-	pickle.dump(transit_timeline, pkfile)
+	pickle.dump(conj_timeline, pkfile)
 	pkfile.close()
     datafile=open(filename+'.txt', 'w')
     fns.append(filename+'.txt')
-    for timepoint in sorted(transit_timeline.keys()):
+    if date_format == 'jd':
+        global_s_time_str = str(global_s_time)
+        global_e_time_str = str(global_e_time)
+    else:
+        global_s_time_str = str(dates.num2date(dates.julian2num(global_s_time)))
+        global_e_time_str = str(dates.num2date(dates.julian2num(global_e_time)))
+    datafile.write('Search for planet conjuction from time '+global_s_time_str+' to '+global_e_time_str+': \n')
+    datafile.write('*********************************\n')
+    datafile.write('Planet radius : ' + r_mode +'\n')
+    datafile.write('Distance from the planet to (earth-star) line of sight : '+ dps_mode + '\n')
+    datafile.write('*********************************\n')
+    datafile.write('Criterion for conjunction (distance <= ?): '+conjunction_crit+'\n')
+    datafile.write('*********************************\n')	
+    for timepoint in sorted(conj_timeline.keys()):
 	datafile.write('============================================\n')
 	if date_format == 'jd':
-		datafile.write('Start time (JD): '+str(timepoint+2454900)+'\n')
+		datafile.write('Conjunction starts at (JD): '+str(timepoint+2454900)+'\n')
 	else:
-		datafile.write('Start time (UTC): '+str(dates.num2date(dates.julian2num(timepoint+2454900)))+'\n')
-	for sys_id in sorted(transit_timeline[timepoint].keys()):
+		datafile.write('Conjunction starts at (UTC): '+str(dates.num2date(dates.julian2num(timepoint+2454900)))+'\n')
+	for sys_id in sorted(conj_timeline[timepoint].keys()):
 		datafile.write('-----------------------------------\n')
 		datafile.write('\tSystem '+str(sys_id)+' :\n')
-		for participants in sorted(transit_timeline[timepoint][sys_id].keys()):
-			tmp_dict = transit_timeline[timepoint][sys_id][participants]
+		for participants in sorted(conj_timeline[timepoint][sys_id].keys()):
+			tmp_dict = conj_timeline[timepoint][sys_id][participants]
 			datafile.write('\t\tParticipants :'+str(participants)+'\n')
+			ext_tag1=''
+			ext_tag2=''
+			ext_tag3=''
+			if tmp_dict['incomplete_flag']:
+				datafile.write('\t\t\t>>> Note: this conjunction might not be complete\n')
+				ext_tag3='  <--- May not be accurate! Please see notes above'
+				if tmp_dict['incomplete_flag'] == 1:
+					ext_tag1='  <---'
+				if tmp_dict['incomplete_flag'] == 2:
+					ext_tag2='  <---'
+			datafile.write('\t\t\t>>> Notes on this conjunction: '+tmp_dict['notes']+'\n')
 			if date_format == 'jd':
-				datafile.write('\t\t\tStart_time (JD) :'+str(timepoint+2454900)+'\n')
-				datafile.write('\t\t\tEnd_time (JD) :'+str(tmp_dict['end_time']+2454900)+'\n')
+				datafile.write('\t\t\tConjunction starts at (JD) :'+str(timepoint+2454900)+ext_tag1+'\n')
+				datafile.write('\t\t\tConjunction ends at (JD) :'+str(tmp_dict['end_time']+2454900)+ext_tag2+'\n')
+				datafile.write('\t\t\tMid_time (JD) :'+str((timepoint+tmp_dict['end_time'])*0.5+2454900)+ext_tag3+'\n')
 			else:
-				datafile.write('\t\t\tStart_time (UTC):'+str(dates.num2date(dates.julian2num(timepoint+2454900)))+'\n')
-				datafile.write('\t\t\tEnd_time (UTC):'+str(dates.num2date(dates.julian2num(tmp_dict['end_time']+2454900)))+'\n')
-			datafile.write('\t\t\tTransit_period (hours):'+str(tmp_dict['transit_period']*24.0)+'\n')
-			datafile.write('\t\t\tStart time separation (Solar Radius) :'+str(tmp_dict['s_ang_sep'])+'\n')
-			datafile.write('\t\t\tEnd time separation (Solar Radius): '+str(tmp_dict['e_ang_sep'])+'\n')
-			datafile.write('\t\t\tTotal size (Solar Radius) :'+str(tmp_dict['radius_sum'])+'\n')
+				datafile.write('\t\t\tConjunction starts at (UTC):'+str(dates.num2date(dates.julian2num(timepoint+2454900)))+ext_tag1+'\n')
+				datafile.write('\t\t\tConjunction ends at (UTC):'+str(dates.num2date(dates.julian2num(tmp_dict['end_time']+2454900)))+ext_tag2+'\n')
+				datafile.write('\t\t\tMid_time (UTC):'+str(dates.num2date(dates.julian2num((timepoint+tmp_dict['end_time'])*0.5+2454900)))+tag3+'\n')
+			datafile.write('\t\t\tConjunction period (hours):'+str(tmp_dict['conjunction_period']*24.0)+'\n')
+			datafile.write('\t\t\tAnd for reference...\n')
+			datafile.write('\t\t\t  Maximum separation among planets when the conjunction starts (unit: Solar Radius) :'+str(tmp_dict['s_ang_sep'])+ext_tag1+'\n')
+			datafile.write('\t\t\t  Maximum separation among planets when the conjunction ends (unit: Solar Radius): '+str(tmp_dict['e_ang_sep'])+ext_tag2+'\n')
+			datafile.write('\t\t\t  Participants\' periods: '+str(tmp_dict['participants_periods'])+'\n')
+			datafile.write('\t\t\t  Participants\' radius: '+str(tmp_dict['participants_radii'])+'\n')
+			datafile.write('\t\t\t  Conjunction criterion (unit: Solar Radius) :'+str(tmp_dict['conj_crit'])+'\n')
     datafile.close()
     return fns
 	
 
-def transit_datafiles_timeline_sort(filenames, verbose=False):
-    transit_timeline = {}
+def conjunction_datafiles_timeline_sort(filenames, verbose=False):
+    conj_timeline = {}
     for filename in filenames:
 	if verbose:
 		print 'Current file: ', filename
-	sys_transit_time = transit_time_readin(filename, verbose=verbose)
-        transit_timeline = transit_system_timeline_sort(transit_timeline, sys_transit_time)
-    return transit_timeline
+	sys_conj_time = conj_time_readin(filename, verbose=verbose)
+        conj_timeline = conjunction_system_timeline_sort(conj_timeline, sys_conj_time)
+    return conj_timeline
 	
-def transit_system_timeline_sort(transit_timeline, sys_transit_time):# run through all the systems
-	for sys_id in sys_transit_time.keys():
+def conjunction_system_timeline_sort(conj_timeline, sys_conj_time, global_start_time=0, global_end_time=0):# run through all the systems
+	for sys_id in sys_conj_time.keys():
 		if verbose:
 			print '\tCurrent system :', sys_id
 		conjunction_flag = 0 # we should have this earlier
-		for n_members in sys_transit_time[sys_id].keys():
+		for n_members in sys_conj_time[sys_id].keys():
 			if n_members == 'n_planets':
 				continue
-			for participants in sorted(sys_transit_time[sys_id][n_members].keys()):
-				n_transits = sys_transit_time[sys_id][n_members][participants]['n_transits']
-				if n_transits <=0:
+			for participants in sorted(sys_conj_time[sys_id][n_members].keys()):
+				n_conjs = sys_conj_time[sys_id][n_members][participants]['n_conjs']
+				if n_conjs <=0:
 					continue
 				if verbose:
 					print '\tWe\'ve got some conjunction! Participating planets: ', participants
-				start_times = sys_transit_time[sys_id][n_members][participants]['start_points']
-				end_times = sys_transit_time[sys_id][n_members][participants]['end_points']
-				s_ang_sep = sys_transit_time[sys_id][n_members][participants]['s_ang_sep']
-				e_ang_sep = sys_transit_time[sys_id][n_members][participants]['e_ang_sep']
-				radius_sum = sys_transit_time[sys_id][n_members][participants]['radius_sum']
-				transit_period = sys_transit_time[sys_id][n_members][participants]['transit_period']
-				non_transit_period = sys_transit_time[sys_id][n_members][participants]['non_transit_period']
-				p_pers = sys_transit_time[sys_id][n_members][participants]['participants_periods']
+				start_times = sys_conj_time[sys_id][n_members][participants]['start_points']
+				end_times = sys_conj_time[sys_id][n_members][participants]['end_points']
+				s_ang_sep = sys_conj_time[sys_id][n_members][participants]['s_ang_sep']
+				e_ang_sep = sys_conj_time[sys_id][n_members][participants]['e_ang_sep']
+				conj_crit = sys_conj_time[sys_id][n_members][participants]['conj_crit']
+				conjunction_period = sys_conj_time[sys_id][n_members][participants]['conjunction_period']
+				non_conjunction_period = sys_conj_time[sys_id][n_members][participants]['non_conjunction_period']
+				p_pers = sys_conj_time[sys_id][n_members][participants]['participants_periods']
+				p_radii = sys_conj_time[sys_id][n_members][participants]['participants_radii']
+				incomplete_flag = sys_conj_time[sys_id][n_members][participants]['incomplete_flag']
+				notes = sys_conj_time[sys_id][n_members][participants]['notes']
 				for i in range(0, len(start_times)):
 					start_time = start_times[i]
 					if verbose:
@@ -102,33 +134,65 @@ def transit_system_timeline_sort(transit_timeline, sys_transit_time):# run throu
 						end_time = -2454900
 						e_ang_sep_tmp = -1
 						t_period = -1
+						incomplete_flag=6
+						note_item='Something is wrong'
 					else:
 						end_time = end_times[i] 
 						e_ang_sep_tmp = e_ang_sep[i] 
-						t_period = transit_period[i]
-					tmp_dict ={'end_time': end_time, 'transit_period':t_period, 'p_pers': p_pers, 's_ang_sep':s_ang_sep[i], 'e_ang_sep':e_ang_sep_tmp, 'radius_sum':radius_sum}	
+						t_period = conjunction_period[i]
+					this_incomplete_flag = incomplete_flag
+					if incomplete_flag==1: # first conjunction not complete
+						if i == 0:
+							note_item = notes[0]
+						else:
+							note_item = 'Hmm something is wrong, start_time not the first?'
+					elif incomplete_flag==2: # last conjunction not complete
+						if i==len(start_times)-1:
+							note_item = notes[0]
+						else:
+							note_item = 'Hmm something is wrong, end_time not the last?'
+					elif incomplete_flag==3: # both first and last conjunction not complete
+						if i == 0:
+							this_incomplete_flag=1
+							note_item = notes[0]
+						elif i==len(start_times)-1:
+							this_incomplete_flag=2
+							note_item = notes[1]
+						else:
+							note_item = 'Hmm something is wrong, not the first nor the last?'
+					else:
+						note_item='Nothing...'
+					tmp_dict ={'end_time': end_time, \
+						'conjunction_period':t_period, \
+						'participants_periods': p_pers, \
+						'participants_radii': p_radii, \
+						's_ang_sep':s_ang_sep[i], \
+						'e_ang_sep':e_ang_sep_tmp, \
+						'conj_crit':conj_crit, \
+						'incomplete_flag':this_incomplete_flag, \
+						'notes':note_item}	
 					if verbose:
 						print '\t\tcurrent dictionary: ', tmp_dict
-					if transit_timeline.has_key(start_time):
-						tr_list_at_t = transit_timeline[start_time]
+					if conj_timeline.has_key(start_time):
+						tr_list_at_t = conj_timeline[start_time]
 						if tr_list_at_t.has_key(sys_id):
 							tr_list_at_t[sys_id][participants]= tmp_dict				
 						else:
 							tr_list_at_t[sys_id]={participants:tmp_dict}	
 					else:
-						transit_timeline[start_time]={sys_id:{participants:tmp_dict}}
-        return transit_timeline
+						conj_timeline[start_time]={sys_id:{participants:tmp_dict}}
+        return conj_timeline
 
 
-def transit_times_stats(sys_transit_time, target_n_planets,  acc_time_per = 1.0, start_time = 2456069.0, \
+def conj_times_stats(sys_conj_time, target_n_planets,  acc_time_per = 1.0, start_time = 2456069.0, \
 			end_time = 2456169.0, verbose = False):
 	"""
-	Given a dictionary of transit times of multiple systems, accumulate for 
-		acc_time_per from start_time to end_time, for transits of N(target_n_planets) planets
+	Given a dictionary of conjunction times of multiple systems, accumulate for 
+		acc_time_per from start_time to end_time, for conjunctions of N(target_n_planets) planets
 	Return a dictioanry of accumulated results (for every acc_time_per during the whole time span, how many
-		transits of N planets occur, and among which planets do these transits happen
+		conjunctions of N planets occur, and among which planets do these conjunctions happen
 
-	transit_stats_dict = {  't_vec':t_vec, \
+	conjunction_stats_dict = {  't_vec':t_vec, \
 				'acc_vec':acc_vec, \
 				'sys_acc_vec':sys_acc_vec, \
 				'start_time': start_time, \
@@ -162,16 +226,16 @@ def transit_times_stats(sys_transit_time, target_n_planets,  acc_time_per = 1.0,
 
 	# run through all the systems
 	# target_key is the number of planets to search conjunction of
-	for sys_id in sys_transit_time.keys():
+	for sys_id in sys_conj_time.keys():
 		if verbose:
 			print 'Current system :', sys_id
-		if sys_transit_time[sys_id].has_key(target_key):
+		if sys_conj_time[sys_id].has_key(target_key):
 			# run through all combinations of n_planets that has conjuctions
-			for participants in sys_transit_time[sys_id][target_key].keys():
+			for participants in sys_conj_time[sys_id][target_key].keys():
 				if verbose:
 					print 'Current planets :', participants
-				s_t_tmp = sys_transit_time[sys_id][target_key][participants]['start_points']
-				e_t_tmp = sys_transit_time[sys_id][target_key][participants]['end_points']
+				s_t_tmp = sys_conj_time[sys_id][target_key][participants]['start_points']
+				e_t_tmp = sys_conj_time[sys_id][target_key][participants]['end_points']
 				t_search_start = 0
 				# run through all the start points
 				for i in range(0, size(s_t_tmp)):
@@ -217,24 +281,24 @@ def transit_times_stats(sys_transit_time, target_n_planets,  acc_time_per = 1.0,
 		del sys_dict['-1']
 		sys_acc_vec[i] = sys_dict
 
-	transit_stats_dict = {  't_vec':t_vec, \
+	conjunction_stats_dict = {  't_vec':t_vec, \
 				'acc_vec':acc_vec, \
 				'sys_acc_vec':sys_acc_vec, \
 				'start_time': start_time, \
 				'end_time': end_time, \
 				'acc_time_per': acc_time_per, \
 				'target_n_planets':target_n_planets}
-	return transit_stats_dict
+	return conjunction_stats_dict
 
 
 
-def transit_n_stats_save_to_file(filename, transit_stats_dict, dps_mode, r_mode, pickle_file = False):
+def conjunction_n_stats_save_to_file(filename, conjunction_stats_dict, dps_mode, r_mode, pickle_file = False):
 	"""
 	Given a dictioanry of accumulated results (for every acc_time_per during the whole time span, how many
-		transits of N planets occur, and among which planets do these transits happen
+		conjunctions of N planets occur, and among which planets do these conjunctions happen
 	Write to file (always right to txt file, write to pickle file when pickle_file is True)
 
-	transit_stats_dict = {  't_vec':t_vec, \
+	conjunction_stats_dict = {  't_vec':t_vec, \
 				'acc_vec':acc_vec, \
 				'sys_acc_vec':sys_acc_vec, \
 				'start_time': start_time, \
@@ -255,18 +319,18 @@ def transit_n_stats_save_to_file(filename, transit_stats_dict, dps_mode, r_mode,
 	"""
 	if pickle_file:
 		pkfile = open(filename+'.pickle', 'w')
-		pickle.dump(transit_stats_dict, pkfile)
+		pickle.dump(conjunction_stats_dict, pkfile)
 		pkfile.close()
 
 	datafile = open(filename+'.txt','w')
 	
-	t_vec = transit_stats_dict['t_vec']
-	acc_vec = transit_stats_dict['acc_vec']
-	sys_acc_vec = transit_stats_dict['sys_acc_vec']
-	start_time = transit_stats_dict['start_time']
-	end_time = transit_stats_dict['end_time']
-	acc_time_per = transit_stats_dict['acc_time_per']
-	target_n_planets = transit_stats_dict['target_n_planets']
+	t_vec = conjunction_stats_dict['t_vec']
+	acc_vec = conjunction_stats_dict['acc_vec']
+	sys_acc_vec = conjunction_stats_dict['sys_acc_vec']
+	start_time = conjunction_stats_dict['start_time']
+	end_time = conjunction_stats_dict['end_time']
+	acc_time_per = conjunction_stats_dict['acc_time_per']
+	target_n_planets = conjunction_stats_dict['target_n_planets']
 	if size(target_n_planets) > 1:
 		target_n_planets = unique(target_n_planets)
 
@@ -280,17 +344,17 @@ def transit_n_stats_save_to_file(filename, transit_stats_dict, dps_mode, r_mode,
 	for i in range(0, size(acc_vec)):
 		datafile.write('\n------------------------------------\n')
 		datafile.write('From time '+str(t_vec[i])+' to '+str(t_vec[i+1])+' :\n')
-		datafile.write('\tNumber of transits of '+str(target_n_planets)+' planets :\n')
+		datafile.write('\tNumber of conjunctions of '+str(target_n_planets)+' planets :\n')
 		datafile.write('\t\t'+str(acc_vec[i])+'\n')
-		datafile.write('\tParticipants of these transits :\n')
+		datafile.write('\tParticipants of these conjunctions :\n')
 		sys_dict = sys_acc_vec[i]
 		for sys_id in sorted(sys_dict.keys()):
 			datafile.write('\t\t----------------\n')
 			datafile.write('\t\tSystem '+str(sys_id)+' :\n')
 			for participants in sys_dict[sys_id]:
 				datafile.write('\t\t\tParticipants :'+str(participants['par_name'])+'\n')
-				datafile.write('\t\t\t\tStart time :'+str(participants['start_time'])+'\n')
-				datafile.write('\t\t\t\tEnd time :'+str(participants['end_time'])+'\n')
+				datafile.write('\t\t\t\tConjunction starts at :'+str(participants['start_time'])+'\n')
+				datafile.write('\t\t\t\tConjunction ends at :'+str(participants['end_time'])+'\n')
 			datafile.write('\t\t----------------\n')
 
 	datafile.close()
@@ -300,7 +364,7 @@ def transit_n_stats_save_to_file(filename, transit_stats_dict, dps_mode, r_mode,
 
 
 
-def plot_transit_stats(target_n_planets = 2, acc_vec = [0], t_vec = [0, 1],\
+def plot_conjunction_stats(target_n_planets = 2, acc_vec = [0], t_vec = [0, 1],\
 			 acc_time_per = 1.0, pattern = '*', color = 'b', stack = False, bottom = [], verbose = False):
 	"""
 	"""
@@ -331,14 +395,14 @@ def plot_transit_stats(target_n_planets = 2, acc_vec = [0], t_vec = [0, 1],\
 			for i in range(0, size(acc_vec)):
 				pylab.vlines(x = x_ind[i], ymin = 0, ymax = acc_vec[i], lw = 2, color = color)
 
-	plot_legend = 'Number of transits of '+str(target_n_planets)+' planets per '+str(acc_time_per)+' days'
+	plot_legend = 'Number of conjunctions of '+str(target_n_planets)+' planets per '+str(acc_time_per)+' days'
 
 	return plot_obj, plot_legend
 
 
 
 
-def transit_stats_dict_update(combined_dict, new_dict, verbose = False):
+def conjunction_stats_dict_update(combined_dict, new_dict, verbose = False):
 	"""
 	Join two dictionaries together
 	"""

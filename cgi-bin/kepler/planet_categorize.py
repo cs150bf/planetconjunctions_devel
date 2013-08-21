@@ -20,7 +20,7 @@ end
 # Semi-major axis of orbit (3)
 # unit: AU, format: F6.3
 # [p]:
-# Average interval between transits (1)
+# Average interval between conjunctions (1)
 # unit: d,  format: F12.7
 # [d_to_Rstar]:
 # Ratio of planet-star separation to stellar radius
@@ -70,7 +70,7 @@ def planet_categorize(t_vec, n_system_start = 0, n_system_end = 5, \
 	#		-'dist_p_to_s_arr':
 	#		-'radius':
 	"""
-	#execfile('transit_funcs.py')
+	#execfile('conjunction_funcs.py')
 
 
 	if verbose:

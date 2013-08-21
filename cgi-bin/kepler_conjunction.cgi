@@ -15,7 +15,6 @@ params_form = cgi.FieldStorage()
 nl = '<br>'
 
 execfile('test_funcs.py')
-#execfile('./kepler/transit_funcs.py')
 
 
 def get_param(param_name, default_val, use_default=True, forced_default=False, islist=False, options=[]):
@@ -67,7 +66,7 @@ def print_params():
     print 'start_time: ', pydoc.html.repr(start_time), nl
     print 'end_time: ', pydoc.html.repr(end_time), nl
     print 'time_step: ', pydoc.html.repr(time_step), nl
-    print 'transit_crit: ', pydoc.html.repr(transit_crit), nl
+    print 'conjunction_crit: ', pydoc.html.repr(conjunction_crit), nl
     print 'dps_mode: ', pydoc.html.repr(dps_mode), nl
     print 'r_mode: ', pydoc.html.repr(r_mode), nl
     print 'datafile_formats: ', pydoc.html.repr(datafile_formats), nl
@@ -82,7 +81,7 @@ def submit_task(message):
     print '\t<INPUT TYPE="hidden" NAME="start_time" VALUE="', pydoc.html.repr(start_time), '">'
     print '\t<input type="hidden" name="end_time" value="', pydoc.html.repr(end_time), '">'
     print '\t<input type="hidden" name="time_step" value="', pydoc.html.repr(time_step), '">'
-    print '\t<input type="hidden" name="transit_crit" value="', transit_crit, '">'
+    print '\t<input type="hidden" name="conjunction_crit" value="', conjunction_crit, '">'
     print '\t<input type="hidden" name="dps_mode" value="', dps_mode, '">'
     print '\t<input type="hidden" name="r_mode" value="', r_mode, '">'
     print '\t<input type="hidden" name="datafile_formats" value="', pydoc.html.repr(datafile_formats), '">'
@@ -113,7 +112,7 @@ start_time = float(get_param('start_time', str(jd_now*1.0), use_default=False))
 #end_time = float(cgi.getfirst('end_time')
 end_time = float(get_param('end_time', str(jd_now+1.0), use_default=False))
 time_step = float(get_param('time_step', str(1.0/100000), use_default=True))
-transit_crit = get_param('transit_crit', 'stellar', use_default=True)
+conjunction_crit = get_param('conjunction_crit', 'stellar', use_default=True)
 dps_mode=get_param('dps_mode', '1', use_default=True, forced_default=True)
 r_mode=get_param('r_mode', '1', use_default=True, forced_default=True)
 datafile_formats = get_param('datafile_format', ['txt'], use_default=True, islist=True, options=['txt', 'pickle'])

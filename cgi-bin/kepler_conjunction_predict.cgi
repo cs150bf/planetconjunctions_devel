@@ -22,11 +22,11 @@ password = 'kepler.planets.conjunctions'
 
 execfile('./kepler/emailresults.py')
 execfile('kepler_conjunction_web_funcs.py')
-execfile('./kepler/transit_funcs.py')
-execfile('./kepler/auto_transit.py')
-execfile('./kepler/planet_transit.py')
-execfile('./kepler/transit_stats_funcs.py')
-execfile('./kepler/transit_stats.py')
+execfile('./kepler/conj_funcs.py')
+execfile('./kepler/auto_conjunction.py')
+execfile('./kepler/planet_conj.py')
+execfile('./kepler/conj_stats_funcs.py')
+execfile('./kepler/conj_stats.py')
 execfile('./kepler/planet_categorize.py')
 execfile('./kepler/planet_d_r_comparison.py')
 
@@ -35,7 +35,7 @@ def print_params():
     print 'start_time: ', pydoc.html.repr(start_time), nl
     print 'end_time: ', pydoc.html.repr(end_time), nl
     print 'time_step: ', pydoc.html.repr(time_step), nl
-    print 'transit_crit: ', pydoc.html.repr(transit_crit), nl
+    print 'conjunction_crit: ', pydoc.html.repr(conjunction_crit), nl
     print 'dps_mode: ', pydoc.html.repr(dps_mode), nl #, 'dps_mode == \'1\'?', dps_mode=='1', nl
     print 'r_mode: ', pydoc.html.repr(r_mode), nl
     print 'datafile_formats: ', pydoc.html.repr(datafile_formats), nl
@@ -88,7 +88,7 @@ def update_task_dict(tasks_dict, event_time, submitted_task_id='', task_type='su
     new_task['start_time'] = start_time
     new_task['end_time'] = end_time
     new_task['time_step'] = time_step
-    new_task['transit_crit'] = transit_crit
+    new_task['conjunction_crit'] = conjunction_crit
     new_task['dps_mode'] = dps_mode
     new_task['r_mode'] = r_mode
     new_task['datafile_formats'] = datafile_formats
@@ -113,7 +113,7 @@ def update_tasks_txt(new_task_dict, tasks_txt_file, task_type):
     new_text = new_text + 'task type: '+new_task_dict['type']+'\n'
     new_text = new_text + task_type+' time: '+new_task_dict['event_time']+'\n'
     listed_keys = ['start_time', 'end_time', 'time_step', \
-		 'transit_crit', 'dps_mode', 'r_mode', \
+		 'conjunction_crit', 'dps_mode', 'r_mode', \
 		 'datafile_formats', 'date_format', 'sort_method',\
 		 'fn_head', 'verbose', 'recipient']
     for key in listed_keys:
@@ -140,7 +140,7 @@ datafile_dir ='/tmp/kepler/'
 start_time = float(params_form.getfirst('start_time'))
 end_time = float(params_form.getfirst('end_time'))
 time_step = float(params_form.getfirst('time_step'))
-transit_crit = params_form.getfirst('transit_crit')
+conjunction_crit = params_form.getfirst('conjunction_crit')
 dps_mode = params_form.getfirst('dps_mode')
 r_mode = params_form.getfirst('r_mode')
 datafile_formats = eval(params_form.getfirst('datafile_formats'))
@@ -150,7 +150,7 @@ fn_head = params_form.getfirst('fn_head')
 verbose = eval(params_form.getfirst('verbose'))
 recipient = params_form.getfirst('recipient')
 
-transit_crit = cleanup(transit_crit)
+conjunction_crit = cleanup(conjunction_crit)
 dps_mode = cleanup(dps_mode)
 r_mode = cleanup(r_mode)
 date_format = cleanup(date_format)
@@ -159,21 +159,21 @@ recipient = cleanup(recipient)
 
 print_params()
 task_id, newtext = update_tasks_list(task_type='submitted')
-#proc = subprocess.Popen(["at", "now", "<<<", "\'python2.6 kepler/auto_transit_script.py", \
-#			str(start_time),  str(end_time), str(time_step), str(transit_crit), \
+#proc = subprocess.Popen(["at", "now", "<<<", "\'python2.6 kepler/auto_conjunction_script.py", \
+#			str(start_time),  str(end_time), str(time_step), str(conjunction_crit), \
 #			str(datafile_foramts), str(date_format), str(sort_method), str(fn_head), \
 #			str(verbose), str(task_id), "\'"], shell=True, stdin=subprocess.PIPE, \
 #			stdout=subprocess.PIPE)
 
 #omsg = os.system("touch kepler/touch_test")
 #omsg = os.system("python2.6 kepler/test.py")
-#omsg = os.system("python2.6 kepler/auto_transit_script.py")
-#omsg = os.system("at now <<< \'python2.6 /var/www/cgi-bin/kepler/auto_transit_script.py "+str(2454900)+"\'")
-#omsg = os.system("at now <<< \'python2.6 kepler/auto_transit_script.py "+str(start_time)+" "+str(end_time)+\
-#	" "+str(time_step)+" "+str(transit_crit)+" "+str(datafile_formats)+" "+str(date_format)+" "+\
+#omsg = os.system("python2.6 kepler/auto_conjunction_script.py")
+#omsg = os.system("at now <<< \'python2.6 /var/www/cgi-bin/kepler/auto_conjunction_script.py "+str(2454900)+"\'")
+#omsg = os.system("at now <<< \'python2.6 kepler/auto_conjunction_script.py "+str(start_time)+" "+str(end_time)+\
+#	" "+str(time_step)+" "+str(conjunction_crit)+" "+str(datafile_formats)+" "+str(date_format)+" "+\
 #	str(sort_method)+" "+str(fn_head)+" "+str(verbose)+" "+str(task_id)+"\'")
 #print ot, nl
-#os.system("at now <<< 'python2.6 /kepler/auto_transit_script.py'")
+#os.system("at now <<< 'python2.6 /kepler/auto_conjunction_script.py'")
 if recipient:
     emailresults(datafile_dir, [], 'Your submitted task [Kepler]', newtext, fromaddrs, recipient, username, password)
 print 'Your task has been successfully submitted, we\'ll now start to process it.', nl
@@ -199,8 +199,8 @@ if os.fork():
 time.sleep(1)
 os.setsid()
 
-n_conjunctions, fns = auto_transit(start_time, end_time, time_step, \
-		dps_mode, r_mode, transit_crit, \
+n_conjunctions, fns = auto_conjunction(start_time, end_time, time_step, \
+		dps_mode, r_mode, conjunction_crit, \
 		datafile_formats, date_format, sort_method, \
 		datafile_dir, fn_head, verbose)
 
