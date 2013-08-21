@@ -1,0 +1,76 @@
+<!--<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN"> -->
+<HTML>
+
+<HEAD>
+<TITLE> Kepler Planet Conjunction Prediction </TITLE>
+</HEAD>
+
+<BODY>
+<h3>Kepler Planet Conjunction Prediction</h3>
+
+<br><br>
+
+<form name="conjunction_params" action="/cgi-bin/kepler_conjunction.cgi" method="get">
+<b>Observing Time Window:</b> (<A HREF="http://aa.usno.navy.mil/data/docs/JulianDate.php">Julian Date Converter: http://aa.usno.navy.mil/data/docs/JulianDate.php</A>)<br>
+Start time (JD): <input type="text" name="start_time"><br>
+End time (JD): <input type="text" name="end_time"><br>
+Time step (default: 1.0/100000 Day): <input type="text" name="time_step"><br>
+<br>
+<b>
+Please specify when do we consider two or more planets are in conjunction - when the maximum distance between any two of these planets is smaller than ...
+</b><br>
+<input type="radio" name="transit_crit" value="stellar"> Radius of the current system's star<br>
+<input type="radio" name="transit_crit" value="planetary"> Sum of radii of target planets <br>
+<br>
+<b>How should we compute the planet-star separation?</b><br>
+<input type="radio" name="dps_mode" value="1" checked disabled> Use the semi-major axis of the orbit given in the data table<br>
+<input type="radio" name="dps_mode" value="2" disabled> Compute from (ratio of planet-star separation to stellar radius)*(stellar radius)<br>
+<br>
+<b>What value should we use as the planet radius?</b><br>
+<input type="radio" name="r_mode" value="1" checked disabled> Use the Planet Radius given in data table <br>
+<input type="radio" name="r_mode" value="2" disabled> Compute from (ratio of planet radius to stellar radius)*(stellar radius)<br>
+<br>
+<b>Please select output datafile format: </b><br>
+<input type="checkbox" name="datafile_format" value="txt" checked>*.txt<br>
+<input type="checkbox" name="datafile_format" value="pickle">*.pickle<br>
+<br>
+<b>How should we print dates in the output text files?</b><br> 
+<input type="radio" name="date_format" value="jd">Julian Date<br>
+<input type="radio" name="date_format" value="utc" checked>UTC<br>
+<br>
+<b>How should we sort the predicted conjunctions?</b><br>
+<input type="checkbox" name="sort_method" value="sys_id">By system ID<br>
+<input type="checkbox" name="sort_method" value="time" checked>By the conjunction start time<br>
+<br>
+<b>The output datafiles should start with...?</b><br>
+<input type="text" name="fn_head"><br>
+<br>
+<b>Other options:</b><br>
+<br>
+<input type="checkbox" name="verbose" disabled>Verbose?<br>
+<br>
+<b>If you would like to get notifications / receive results via email, please put in your email address below: </b><br>
+<input type="text" name="recipient"><br>
+<br>
+<input type="submit" value="Predict!">
+</form>
+
+
+</BODY>
+</HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
