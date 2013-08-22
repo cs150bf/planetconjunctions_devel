@@ -60,12 +60,18 @@ def auto_conjunction(start_time, end_time, time_step, \
 					start_time, end_time, date_format=date_format, \
 					pickle_file=pickle_file, to_append=False)
 		fns.extend(filenames)
-	if 'time' in sort_method:
+	if 'start_time' in sort_method:
 		#conj_timeline_dict = conjunction_datafiles_timeline_sort([datafile_dir+x for x in conjunction_fn_collection], verbose=verbose)		
-		conj_timeline_dict = conjunction_system_timeline_sort({}, sys_conj_time_dict, start_time, end_time)
-		filenames = conj_timeline_printout(datafile_dir+fn_head+'_timeline', \
+		conj_timeline_dict = conjunction_system_timeline_sort(sys_conj_time_dict, start_time, end_time, {'sort_key':'start_time'})
+		filenames = conj_timeline_printout(datafile_dir+fn_head+'_timeline_start_time', \
 				conj_timeline_dict, start_time, end_time, date_format=date_format, pickle_file=pickle_file)
 		fns.extend(filenames)
+	if 'mid_time' in sort_method:
+		conj_timeline_dict = conjunction_system_timeline_sort(sys_conj_time_dict, start_time, end_time, {'sort_key':'mid_time'})
+		filenames = conj_timeline_printout(datafile_dir+fn_head+'_timeline_mid_time', \
+				conj_timeline_dict, start_time, end_time, date_format=date_format, pickle_file=pickle_file)
+		fns.extend(filenames)
+		
 	return acc_n_conjunctions, fns
 
 #n_conjunctions, fns = auto_conjunction(start_time, end_time, time_step, \

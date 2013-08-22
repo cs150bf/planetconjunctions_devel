@@ -19,7 +19,12 @@ def find_radius_sum(planet_sys):
 		radius_sum = radius_sum + radius_tmp
 	return radius_sum
 
-
+def get_current_p_to_s(planet, t_current):
+	"""
+	Return the current angular separation of the given planet to its star
+	"""
+	p_to_s = planet['d']*sin(2*pi*(t_current-planet['t_0'])/planet['per'])
+	return p_to_s
 
 
 def find_current_max_separation(planet_sys, t_ind, t_current, n_participants, verbose = False):
@@ -44,10 +49,12 @@ def find_current_max_separation(planet_sys, t_ind, t_current, n_participants, ve
 			#print 'Finding max separation at current time...'+str(t_ind)+', '+str(t_current)
 			#print 'Current combination: ', str(comb)
 		# get two planets
-		planet_x_tmp_dist_p_to_s = planet_sys[comb[0]]['dist_p_to_s_arr']
-		planet_y_tmp_dist_p_to_s = planet_sys[comb[1]]['dist_p_to_s_arr']
+		x_dist_p_to_s = planet_sys[comb[0]]['dist_p_to_s_arr'][t_ind]
+		y_dist_p_to_s = planet_sys[comb[1]]['dist_p_to_s_arr'][t_ind]
+		#x_dist_p_to_s = get_current_p_to_s(planet_sys[comb[0]], t_current)
+		#y_dist_p_to_s = get_current_p_to_s(planet_sys[comb[1]], t_current)
 		# find their separation
-		sep_tmp_t_current = abs(planet_x_tmp_dist_p_to_s[t_ind] - planet_y_tmp_dist_p_to_s[t_ind])
+		sep_tmp_t_current = abs(x_dist_p_to_s - y_dist_p_to_s)
 		if sep_tmp_t_current > max_sep:
 			max_sep = sep_tmp_t_current
 			planet_x = comb[0]
@@ -98,7 +105,7 @@ def find_conj_time(planet_sys, n_participants, t, conjunction_crit, stellar_R, a
 			planet_group.append(planet_sys[comb[j]])
 			if planet_sys[comb[j]]['radius'] < 0:
 				ineffective_flag = True
-			if size(planet_sys[comb[j]]['dist_p_to_s_arr']) == 1:
+			if planet_sys[comb[j]]['d_to_Rstar'] < 0:
 				ineffective_flag = True
 
 		if ineffective_flag:
@@ -197,8 +204,10 @@ def find_conj_time(planet_sys, n_participants, t, conjunction_crit, stellar_R, a
 		participants = [] # a list of 'number's
 		participants_periods = []
 		participants_radii = []
+		participants_teqs = []
 		for participant_ind in comb:
 			participants.append('{0:04.2f}'.format(float(planet_sys[participant_ind]['number'])))
+			participants_teqs.append(planet_sys[participant_ind]['Teq'])
 			participants_periods.append(planet_sys[participant_ind]['per'])
 			participants_radii.append(planet_sys[participant_ind]['radius'])
 
@@ -220,6 +229,7 @@ def find_conj_time(planet_sys, n_participants, t, conjunction_crit, stellar_R, a
 							'n_conjs':n_conjs, \
 							'participants_periods':participants_periods, \
 							'participants_radii':participants_radii, \
+							'participants_teqs':participants_teqs, \
 							'incomplete_flag':incomplete_flag, \
 							'notes': notes}
 
@@ -360,6 +370,7 @@ def conj_time_save_to_file(filename, sys_conj_time, r_mode, dps_mode, conjunctio
 				non_conjunction_period = sys_conj_time[sys_n][n_members][participants]['non_conjunction_period']
 				p_pers = sys_conj_time[sys_n][n_members][participants]['participants_periods']
 				p_radii = sys_conj_time[sys_n][n_members][participants]['participants_radii']
+				p_teqs = sys_conj_time[sys_n][n_members][participants]['participants_teqs']
 				incomplete_flag = sys_conj_time[sys_n][n_members][participants]['incomplete_flag']
 				notes = sys_conj_time[sys_n][n_members][participants]['notes']
 
@@ -403,6 +414,8 @@ def conj_time_save_to_file(filename, sys_conj_time, r_mode, dps_mode, conjunctio
 				datafile.write('\t\t\t'+str(p_pers)+'\n')
 				datafile.write('\t\t  Radii of participants (unit: Solar Radius):\n')
 				datafile.write('\t\t\t'+str(p_radii)+'\n')
+				datafile.write('\t\t  Equilibrium temperature of participants (unit: Solar Radius):\n')
+				datafile.write('\t\t\t'+str(p_teqs)+'\n')
 				if incomplete_flag:
 					datafile.write('\t\tNote: there are incomplete conjunctions recorded!\n')
 				for note_item in notes:

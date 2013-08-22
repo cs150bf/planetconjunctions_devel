@@ -30,6 +30,13 @@ def conj_time_readin(filename, verbose = False):
 
 def conj_timeline_printout(filename, conj_timeline, global_s_time, global_e_time, date_format='jd', pickle_file=False):
     fns = []
+    sort_key=conj_timeline['sort_key']
+    if sort_key is 'start_time':
+        sort_key_msg = 'starting'
+    elif sort_key is 'mid_time':
+        sort_key_msg = 'with mid-time'
+    elif sort_key is 'end_time':
+        sort_key_msg = 'ending'
     if pickle_file:
 	pkfile = open(filename+'.pickle', 'w')
         fns.append(filename+'.pickle')
@@ -51,11 +58,13 @@ def conj_timeline_printout(filename, conj_timeline, global_s_time, global_e_time
     datafile.write('Criterion for conjunction (distance <= ?): '+conjunction_crit+'\n')
     datafile.write('*********************************\n')	
     for timepoint in sorted(conj_timeline.keys()):
+	if timepoint is 'sort_key':
+		continue
 	datafile.write('============================================\n')
 	if date_format == 'jd':
-		datafile.write('Conjunction starts at (JD): '+str(timepoint+2454900)+'\n')
+		datafile.write('List of conjunctions '+sort_key_msg+' at (JD): '+str(timepoint+2454900)+'\n')
 	else:
-		datafile.write('Conjunction starts at (UTC): '+str(dates.num2date(dates.julian2num(timepoint+2454900)))+'\n')
+		datafile.write('List of conjunctions '+sort_key_msg+' at (UTC): '+str(dates.num2date(dates.julian2num(timepoint+2454900)))+'\n')
 	for sys_id in sorted(conj_timeline[timepoint].keys()):
 		datafile.write('-----------------------------------\n')
 		datafile.write('\tSystem '+str(sys_id)+' :\n')
@@ -79,18 +88,19 @@ def conj_timeline_printout(filename, conj_timeline, global_s_time, global_e_time
 			if date_format == 'jd':
 				datafile.write('\t\t\tConjunction starts at (JD) :'+str(timepoint+2454900)+ext_tag1+'\n')
 				datafile.write('\t\t\tConjunction ends at (JD) :'+str(tmp_dict['end_time']+2454900)+ext_tag2+'\n')
-				datafile.write('\t\t\tMid_time (JD) :'+str((timepoint+tmp_dict['end_time'])*0.5+2454900)+ext_tag3+'\n')
+				datafile.write('\t\t\tMid_time (JD) :'+str(tmp_dict['mid_time']+2454900)+ext_tag3+'\n')
 			else:
 				datafile.write('\t\t\tConjunction starts at (UTC):'+str(dates.num2date(dates.julian2num(timepoint+2454900)))+ext_tag1+'\n')
 				datafile.write('\t\t\tConjunction ends at (UTC):'+str(dates.num2date(dates.julian2num(tmp_dict['end_time']+2454900)))+ext_tag2+'\n')
-				datafile.write('\t\t\tMid_time (UTC):'+str(dates.num2date(dates.julian2num((timepoint+tmp_dict['end_time'])*0.5+2454900)))+ext_tag3+'\n')
+				datafile.write('\t\t\tMid_time (UTC):'+str(dates.num2date(dates.julian2num(tmp_dict['mid_time']+2454900)))+ext_tag3+'\n')
 			datafile.write('\t\t\tConjunction duration (hours):'+str(tmp_dict['conjunction_period']*24.0)+'\n')
 			datafile.write('\t\t\tAnd for reference...\n')
 			datafile.write('\t\t\t  Maximum separation among planets when the conjunction starts (unit: Solar Radius) :'+str(tmp_dict['s_ang_sep'])+ext_tag1+'\n')
 			datafile.write('\t\t\t  Maximum separation among planets when the conjunction ends (unit: Solar Radius): '+str(tmp_dict['e_ang_sep'])+ext_tag2+'\n')
-			datafile.write('\t\t\t  Participants\' periods: '+str(tmp_dict['participants_periods'])+'\n')
-			datafile.write('\t\t\t  Participants\' radius: '+str(tmp_dict['participants_radii'])+'\n')
-			datafile.write('\t\t\t  Conjunction criterion (unit: Solar Radius) :'+str(tmp_dict['conj_crit'])+'\n')
+			datafile.write('\t\t\t  Participants\' periods (hours): '+str(tmp_dict['participants_periods'])+'\n')
+			datafile.write('\t\t\t  Participants\' radius (unit: Solar Radius): '+str(tmp_dict['participants_radii'])+'\n')
+			datafile.write('\t\t\t  Participants\' Equilibrium Temperature : '+str(tmp_dict['participants_teqs'])+'\n')
+			datafile.write('\t\t\t  Conjunction criterion (unit: Solar Radius): '+str(tmp_dict['conj_crit'])+'\n')
     datafile.close()
     return fns
 	
@@ -104,7 +114,8 @@ def conjunction_datafiles_timeline_sort(filenames, verbose=False):
         conj_timeline = conjunction_system_timeline_sort(conj_timeline, sys_conj_time)
     return conj_timeline
 	
-def conjunction_system_timeline_sort(conj_timeline, sys_conj_time, global_start_time=0, global_end_time=0):# run through all the systems
+def conjunction_system_timeline_sort(sys_conj_time, global_start_time=0, global_end_time=0, conj_timeline={'sort_key':'start_time'}):# run through all the systems
+	sort_key = conj_timeline['sort_key']
 	for sys_id in sys_conj_time.keys():
 		if verbose:
 			print '\tCurrent system :', sys_id
@@ -120,6 +131,7 @@ def conjunction_system_timeline_sort(conj_timeline, sys_conj_time, global_start_
 					print '\tWe\'ve got some conjunction! Participating planets: ', participants
 				start_times = sys_conj_time[sys_id][n_members][participants]['start_points']
 				end_times = sys_conj_time[sys_id][n_members][participants]['end_points']
+				mid_times = sys_conj_time[sys_id][n_members][participants]['mid_points']
 				s_ang_sep = sys_conj_time[sys_id][n_members][participants]['s_ang_sep']
 				e_ang_sep = sys_conj_time[sys_id][n_members][participants]['e_ang_sep']
 				conj_crit = sys_conj_time[sys_id][n_members][participants]['conj_crit']
@@ -127,6 +139,7 @@ def conjunction_system_timeline_sort(conj_timeline, sys_conj_time, global_start_
 				non_conjunction_period = sys_conj_time[sys_id][n_members][participants]['non_conjunction_period']
 				p_pers = sys_conj_time[sys_id][n_members][participants]['participants_periods']
 				p_radii = sys_conj_time[sys_id][n_members][participants]['participants_radii']
+				p_teqs = sys_conj_time[sys_id][n_members][participants]['participants_teqs']
 				incomplete_flag = sys_conj_time[sys_id][n_members][participants]['incomplete_flag']
 				notes = sys_conj_time[sys_id][n_members][participants]['notes']
 				for i in range(0, len(start_times)):
@@ -135,12 +148,14 @@ def conjunction_system_timeline_sort(conj_timeline, sys_conj_time, global_start_
 						print '\t\tCurrent start time: ', start_time	
 					if len(end_times) <= i:
 						end_time = -2454900
+						mid_time = -2454900
 						e_ang_sep_tmp = -1
 						t_period = -1
 						incomplete_flag=6
 						note_item='Something is wrong; '
 					else:
-						end_time = end_times[i] 
+						end_time = end_times[i]
+						mid_time = mid_times[i] 
 						e_ang_sep_tmp = e_ang_sep[i] 
 						t_period = conjunction_period[i]
 						note_item=''
@@ -169,25 +184,28 @@ def conjunction_system_timeline_sort(conj_timeline, sys_conj_time, global_start_
 							note_item = 'Hmm something is wrong, not the first nor the last?'
 					else:
 						note_item='Nothing...'
-					tmp_dict ={'end_time': end_time, \
+					tmp_dict ={'start_time':start_time, \
+						'end_time': end_time, \
+						'mid_time': mid_time, \
 						'conjunction_period':t_period, \
 						'participants_periods': p_pers, \
 						'participants_radii': p_radii, \
 						's_ang_sep':s_ang_sep[i], \
 						'e_ang_sep':e_ang_sep_tmp, \
 						'conj_crit':conj_crit, \
+						'participants_teqs':p_teqs,\
 						'incomplete_flag':this_incomplete_flag, \
 						'notes':note_item}	
 					if verbose:
 						print '\t\tcurrent dictionary: ', tmp_dict
-					if conj_timeline.has_key(start_time):
-						tr_list_at_t = conj_timeline[start_time]
+					if conj_timeline.has_key(tmp_dict[sort_key]):
+						tr_list_at_t = conj_timeline[tmp_dict[sort_key]]
 						if tr_list_at_t.has_key(sys_id):
 							tr_list_at_t[sys_id][participants]= tmp_dict				
 						else:
 							tr_list_at_t[sys_id]={participants:tmp_dict}	
 					else:
-						conj_timeline[start_time]={sys_id:{participants:tmp_dict}}
+						conj_timeline[tmp_dict[sort_key]]={sys_id:{participants:tmp_dict}}
         return conj_timeline
 
 

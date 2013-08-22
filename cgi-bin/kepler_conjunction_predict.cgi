@@ -183,7 +183,7 @@ print '... and the list of completed tasks at /tmp/kepler/completed_tasks.txt', 
 print 'And the result of your completed tasks should also exist in /tmp/kepler/ and has file names start with your assigned value.', nl
 print nl
 print 'If you chose to get notifications via emails, we\'ve sent you an email about your submitted task.', nl
-print 'When your task is completed, we\'ll send you another email with the resutls attached.', nl
+print 'When your task is completed, we\'ll send you another email with the results attached.', nl
 print nl
 print 'The message that we just sent to you is: ', nl
 print pydoc.html.repr(newtext)

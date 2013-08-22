@@ -92,6 +92,7 @@ def planet_categorize(t_vec, n_system_start = 0, n_system_end = 5, \
 	planet_rad = data.Rp
 	stellar_rad2 = data.Rad2
 	t_0 = data.t_0
+	teq = data.T_eq
 	planet_systems = {}
 
 	planet_d1, planet_d2, planet_r1, planet_r2 = planet_d_r_comparison(save_to_file=False)
@@ -169,7 +170,8 @@ def planet_categorize(t_vec, n_system_start = 0, n_system_end = 5, \
 					'per': planet_per[i], 'r_to_Rstar': r_to_Rstar[i], \
 					'd_to_Rstar': d_to_Rstar[i], 'd':d_arr[i], \
 					'Rad2': stellar_rad2[i], 'Rad': planet_rad[i], \
-					'dist_p_to_s_arr': dist_p_to_s_arr_tmp, 'radius':radius_tmp}
+					'radius':radius_tmp, 't_0':t_0[i], 'Teq':teq[i], \
+					'dist_p_to_s_arr': dist_p_to_s_arr_tmp}
 		else:
 			planet_tmp = {}
 
