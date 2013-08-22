@@ -26,6 +26,15 @@ def get_current_p_to_s(planet, t_current):
 	p_to_s = planet['d']*sin(2*pi*(t_current-planet['t_0'])/planet['per'])
 	return p_to_s
 
+def get_planet_positions(planet_sys, t_ind, t_current):
+	planet_positions=[]
+	for planet in planet_sys:
+		tmp_p_sin_ang = planet['planet_ang_position'][t_ind]
+		tmp_p_ang = math.asin(tmp_p_sin_ang)
+		tmp_p_position_x = tmp_p_sin_ang*planet['d']
+		tmp_p_position_y = math.cos(tmp_p_ang)*planet['d']
+		planet_positions.append((planet['number'], tmp_p_ang, tmp_p_position_x, tmp_p_position_y))
+	return planet_positions
 
 def find_current_max_separation(planet_sys, t_ind, t_current, n_participants, verbose = False):
 	"""
@@ -59,7 +68,6 @@ def find_current_max_separation(planet_sys, t_ind, t_current, n_participants, ve
 			max_sep = sep_tmp_t_current
 			planet_x = comb[0]
 			planet_y = comb[1]
-
 	return max_sep, planet_x, planet_y
 			
 
@@ -105,7 +113,7 @@ def find_conj_time(planet_sys, n_participants, t, conjunction_crit, stellar_R, a
 			planet_group.append(planet_sys[comb[j]])
 			if planet_sys[comb[j]]['radius'] < 0:
 				ineffective_flag = True
-			if planet_sys[comb[j]]['d_to_Rstar'] < 0:
+			if planet_sys[comb[j]]['d_to_Rstar'] == -99:
 				ineffective_flag = True
 
 		if ineffective_flag:
@@ -128,12 +136,15 @@ def find_conj_time(planet_sys, n_participants, t, conjunction_crit, stellar_R, a
 		end_t_points = []
 		start_ang_separation = []
 		end_ang_separation = []
+		s_angs = []
+		e_angs = []
 		incomplete_flag = 0 # whether the conjunctions we found are all complete
 		notes=[]
 
 		for t_ind in range(0, size(t)): # time index
 			t_current = t[t_ind]
-			max_separation_current, planet_x, planet_y  = find_current_max_separation(planet_group,t_ind, t_current, n_participants, verbose = verbose)
+			max_separation_current, planet_x, planet_y  = find_current_max_separation(planet_group, \
+						t_ind, t_current, n_participants, verbose = verbose)
 
 
 			# if max separation (AU) is smaller than conj_crit
@@ -148,6 +159,7 @@ def find_conj_time(planet_sys, n_participants, t, conjunction_crit, stellar_R, a
 					print 'Conjunction Criterion: ', str(conj_crit)
 				started_flag = 1
 				start_t_points.append(t_current) # add start point (time stamp)
+				s_angs.append(get_planet_positions(planet_group, t_ind, t_current))
 				start_ang_separation.append(max_separation_current) # record current separation (AU))
 				if t_ind == 0: # right at the beginning of our observing window
 					if verbose:
@@ -166,6 +178,7 @@ def find_conj_time(planet_sys, n_participants, t, conjunction_crit, stellar_R, a
 				started_flag = 0 # out of conjunction zone
 				end_t_points.append(t_current) # add end point(time stamp)
 				end_ang_separation.append(max_separation_current) # record current separation (AU))
+				e_angs.append(get_planet_positions(planet_group, t_ind, t_current))
 			# if we are finishing up before a conjunction ends
 			elif started_flag and t_ind==size(t)-1: # observation ended while in the middle of a conjunction
 				if verbose:
@@ -178,6 +191,7 @@ def find_conj_time(planet_sys, n_participants, t, conjunction_crit, stellar_R, a
 				started_flag = 0
 				end_t_points.append(t_current)
 				end_ang_separation.append(max_separation_current)
+				e_angs.append(get_planet_positions(planet_group, t_ind, t_current))
 				notes.append('Last conjunction is still on-going when the observation ended')
 		if verbose:		
 			print 'Number of start points: '+str(size(start_t_points))
@@ -230,6 +244,8 @@ def find_conj_time(planet_sys, n_participants, t, conjunction_crit, stellar_R, a
 							'participants_periods':participants_periods, \
 							'participants_radii':participants_radii, \
 							'participants_teqs':participants_teqs, \
+							's_angs':s_angs, \
+							'e_angs':e_angs, \
 							'incomplete_flag':incomplete_flag, \
 							'notes': notes}
 
@@ -371,6 +387,8 @@ def conj_time_save_to_file(filename, sys_conj_time, r_mode, dps_mode, conjunctio
 				p_pers = sys_conj_time[sys_n][n_members][participants]['participants_periods']
 				p_radii = sys_conj_time[sys_n][n_members][participants]['participants_radii']
 				p_teqs = sys_conj_time[sys_n][n_members][participants]['participants_teqs']
+				s_angs = sys_conj_time[sys_n][n_members][participants]['s_angs']
+				e_angs = sys_conj_time[sys_n][n_members][participants]['e_angs']
 				incomplete_flag = sys_conj_time[sys_n][n_members][participants]['incomplete_flag']
 				notes = sys_conj_time[sys_n][n_members][participants]['notes']
 
@@ -416,6 +434,10 @@ def conj_time_save_to_file(filename, sys_conj_time, r_mode, dps_mode, conjunctio
 				datafile.write('\t\t\t'+str(p_radii)+'\n')
 				datafile.write('\t\t  Equilibrium temperature of participants (unit: Solar Radius):\n')
 				datafile.write('\t\t\t'+str(p_teqs)+'\n')
+				datafile.write('\t\t  Position (angular) of participants at start time(unit: radian): \n')
+				datafile.write('\t\t\t'+str(s_angs)+'\n')
+				datafile.write('\t\t  Position (angular) of participants at end time(unit: radian): \n')
+				datafile.write('\t\t\t'+str(e_angs)+'\n')
 				if incomplete_flag:
 					datafile.write('\t\tNote: there are incomplete conjunctions recorded!\n')
 				for note_item in notes:

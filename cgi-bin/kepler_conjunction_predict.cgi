@@ -178,15 +178,17 @@ if recipient:
     emailresults(datafile_dir, [], 'Your submitted task [Kepler]', newtext, fromaddrs, recipient, username, password)
 print 'Your task has been successfully submitted, we\'ll now start to process it.', nl
 print 'This will take a while, please check back later...', nl
-print 'You can find the list of submitted tasks at /tmp/kepler/submitted_tasks.txt', nl
-print '... and the list of completed tasks at /tmp/kepler/completed_tasks.txt', nl
-print 'And the result of your completed tasks should also exist in /tmp/kepler/ and has file names start with your assigned value.', nl
+print 'You can find the list of submitted tasks at ', datafile_dir ,'submitted_tasks.txt', nl
+print '... and the list of completed tasks at ', datafile_dir ,'completed_tasks.txt', nl
+print 'And the result of your completed tasks should also exist in ', datafile_dir ,' and has file names start with your assigned value:', nl
+print datafile_dir ,fn_head,'*.*'
 print nl
 print 'If you chose to get notifications via emails, we\'ve sent you an email about your submitted task.', nl
 print 'When your task is completed, we\'ll send you another email with the results attached.', nl
 print nl
-print 'The message that we just sent to you is: ', nl
-print pydoc.html.repr(newtext)
+#print 'The message that we just sent to you is: ', nl
+#print pydoc.html.repr(newtext)
+print 'If you chose to enable the \'verbose\' feature, you can also find a detailed log file at /tmp/kepler/',fn_head,'_log.txt'
 finish_page()
 
 
@@ -199,11 +201,18 @@ if os.fork():
 time.sleep(1)
 os.setsid()
 
-n_conjunctions, fns = auto_conjunction(start_time, end_time, time_step, \
+stdout = sys.stdout
+logfilename=datafile_dir+fn_head+'_log.txt'
+with open(logfilename, 'w') as sys.stdout:
+    n_conjunctions, fns = auto_conjunction(start_time, end_time, time_step, \
 		dps_mode, r_mode, conjunction_crit, \
 		datafile_formats, date_format, sort_method, \
 		datafile_dir, fn_head, verbose)
 
+sys.stdout = stdout
+
+if verbose:
+    fns.append(logfilename)
 #print 'Task finished!'	
 task_id, newtext = update_tasks_list(task_id, task_type='completed')
 if recipient:

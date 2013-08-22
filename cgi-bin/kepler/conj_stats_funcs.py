@@ -95,12 +95,14 @@ def conj_timeline_printout(filename, conj_timeline, global_s_time, global_e_time
 				datafile.write('\t\t\tMid_time (UTC):'+str(dates.num2date(dates.julian2num(tmp_dict['mid_time']+2454900)))+ext_tag3+'\n')
 			datafile.write('\t\t\tConjunction duration (hours):'+str(tmp_dict['conjunction_period']*24.0)+'\n')
 			datafile.write('\t\t\tAnd for reference...\n')
-			datafile.write('\t\t\t  Maximum separation among planets when the conjunction starts (unit: Solar Radius) :'+str(tmp_dict['s_ang_sep'])+ext_tag1+'\n')
-			datafile.write('\t\t\t  Maximum separation among planets when the conjunction ends (unit: Solar Radius): '+str(tmp_dict['e_ang_sep'])+ext_tag2+'\n')
-			datafile.write('\t\t\t  Participants\' periods (hours): '+str(tmp_dict['participants_periods'])+'\n')
-			datafile.write('\t\t\t  Participants\' radius (unit: Solar Radius): '+str(tmp_dict['participants_radii'])+'\n')
-			datafile.write('\t\t\t  Participants\' Equilibrium Temperature : '+str(tmp_dict['participants_teqs'])+'\n')
-			datafile.write('\t\t\t  Conjunction criterion (unit: Solar Radius): '+str(tmp_dict['conj_crit'])+'\n')
+			datafile.write('\t\t\t\tMaximum separation among planets when the conjunction starts (unit: Solar Radius) :'+str(tmp_dict['s_ang_sep'])+ext_tag1+'\n')
+			datafile.write('\t\t\t\tMaximum separation among planets when the conjunction ends (unit: Solar Radius): '+str(tmp_dict['e_ang_sep'])+ext_tag2+'\n')
+			datafile.write('\t\t\t\tParticipants\' periods (hours): '+str(tmp_dict['participants_periods'])+'\n')
+			datafile.write('\t\t\t\tParticipants\' radius (unit: Solar Radius): '+str(tmp_dict['participants_radii'])+'\n')
+			datafile.write('\t\t\t\tParticipants\' Equilibrium Temperature : '+str(tmp_dict['participants_teqs'])+'\n')
+			datafile.write('\t\t\t\tParticipants\' angular positions at start time(radian): '+str(tmp_dict['s_ang'])+'\n')
+			datafile.write('\t\t\t\tParticipatns\' angular positions at end time(radian): '+str(tmp_dict['e_ang'])+'\n')
+			datafile.write('\t\t\t\tConjunction criterion (unit: Solar Radius): '+str(tmp_dict['conj_crit'])+'\n')
     datafile.close()
     return fns
 	
@@ -134,6 +136,8 @@ def conjunction_system_timeline_sort(sys_conj_time, global_start_time=0, global_
 				mid_times = sys_conj_time[sys_id][n_members][participants]['mid_points']
 				s_ang_sep = sys_conj_time[sys_id][n_members][participants]['s_ang_sep']
 				e_ang_sep = sys_conj_time[sys_id][n_members][participants]['e_ang_sep']
+				s_angs = sys_conj_time[sys_id][n_members][participants]['s_angs']
+				e_angs = sys_conj_time[sys_id][n_members][participants]['e_angs'] 
 				conj_crit = sys_conj_time[sys_id][n_members][participants]['conj_crit']
 				conjunction_period = sys_conj_time[sys_id][n_members][participants]['conjunction_period']
 				non_conjunction_period = sys_conj_time[sys_id][n_members][participants]['non_conjunction_period']
@@ -150,6 +154,7 @@ def conjunction_system_timeline_sort(sys_conj_time, global_start_time=0, global_
 						end_time = -2454900
 						mid_time = -2454900
 						e_ang_sep_tmp = -1
+						e_ang_tmp = -1
 						t_period = -1
 						incomplete_flag=6
 						note_item='Something is wrong; '
@@ -157,6 +162,7 @@ def conjunction_system_timeline_sort(sys_conj_time, global_start_time=0, global_
 						end_time = end_times[i]
 						mid_time = mid_times[i] 
 						e_ang_sep_tmp = e_ang_sep[i] 
+						e_ang_tmp = e_angs[i]
 						t_period = conjunction_period[i]
 						note_item=''
 					this_incomplete_flag = incomplete_flag
@@ -192,6 +198,8 @@ def conjunction_system_timeline_sort(sys_conj_time, global_start_time=0, global_
 						'participants_radii': p_radii, \
 						's_ang_sep':s_ang_sep[i], \
 						'e_ang_sep':e_ang_sep_tmp, \
+						's_ang':s_angs[i],
+						'e_ang':e_ang_tmp, 
 						'conj_crit':conj_crit, \
 						'participants_teqs':p_teqs,\
 						'incomplete_flag':this_incomplete_flag, \

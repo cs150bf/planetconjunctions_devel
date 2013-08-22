@@ -120,7 +120,7 @@ date_format = get_param('date_format', 'utc', use_default=True)
 sort_method = get_param('sort_method', ['time'], use_default=True, islist=True, options=['mid_time','start_time', 'sys_id'])
 fn_head = get_param('fn_head', 'kepler_'+str(start_time)+'_'+str(end_time),use_default=True)
 recipient = get_param('recipient', 'kepler.conjunctions@gmail.com', use_default=True)
-verbose = eval(get_param('verbose', 'False', use_default=True, forced_default=True))
+verbose = eval(get_param('verbose', 'False', use_default=True, forced_default=False))
 
 print nl
 '''

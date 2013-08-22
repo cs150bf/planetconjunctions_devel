@@ -157,11 +157,13 @@ def planet_categorize(t_vec, n_system_start = 0, n_system_end = 5, \
 			# dist_p_to_s_arr: this is an array (time-depend)
 			# representing the distance from the planet to the (earth-star) line of sight
 			if d_to_Rstar[i] <> -99.0:
-				dist_p_to_s_arr_tmp = d_arr[i]*sin(2*pi*(t_vec-t_0[i])/planet_per[i])
+				sin_p_angs = sin(2*pi*(t_vec-t_0[i])/planet_per[i])
+				dist_p_to_s_arr_tmp = d_arr[i]*sin_p_angs		
 			else:
 				if verbose:
 					print 'Negative distance, setting dist_p_to_s_arr_tmp to [-99]...'
 				dist_p_to_s_arr_tmp = [-99]
+				sin_p_angs=[0]
 
 			radius_tmp = r_arr[i]
 
@@ -171,7 +173,7 @@ def planet_categorize(t_vec, n_system_start = 0, n_system_end = 5, \
 					'd_to_Rstar': d_to_Rstar[i], 'd':d_arr[i], \
 					'Rad2': stellar_rad2[i], 'Rad': planet_rad[i], \
 					'radius':radius_tmp, 't_0':t_0[i], 'Teq':teq[i], \
-					'dist_p_to_s_arr': dist_p_to_s_arr_tmp}
+					'dist_p_to_s_arr': dist_p_to_s_arr_tmp, 'planet_ang_position':sin_p_angs}
 		else:
 			planet_tmp = {}
 
